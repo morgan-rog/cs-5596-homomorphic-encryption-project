@@ -64,10 +64,6 @@ print(len(d_num))
 print(type(0.7198091310427663))
 #####################################################################
 
-
-
-
-
 # %%
 def encrypt_data(W):
     encrypted_data = [[HE.encrypt(num) for num in y] for y in W]
