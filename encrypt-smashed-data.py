@@ -9,8 +9,6 @@ print("1. load in data from smashed_data.npy")
 smashed_data = np.load("smashed_data.npy")
 
 print("2. Printing array: \n", smashed_data)
-
-# %%
 print("3. shape of the array: ", smashed_data.shape)
 # %%
 print("GENERATING PYFHEL CONTEXT AND KEY SETUP")
@@ -25,23 +23,6 @@ print(smashed_data[0][0][0][0])
 print(smashed_data[0][0][0])
 print(smashed_data[0][0])
 
-# %%
-for x in smashed_data:
-    for y in x:
-        for z in y:
-            for num in z:
-                print("---------------------")
-                print(num)
-                encrypted_num = HE.encrypt(num)
-                print(encrypted_num)
-                decrypted_num = HE.decrypt(encrypted_num)
-                print(decrypted_num)
-                print(len(decrypted_num))
-                print("---------------------")
-                break
-            break
-        break
-    break
 # %%
 for x in smashed_data:
     for y in x:
