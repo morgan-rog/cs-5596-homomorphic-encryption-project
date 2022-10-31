@@ -54,3 +54,7 @@ print(random_array)
 print(len(random_array))
 
 # %%
+# TO DO:
+# access and encrypt 25% of the arrays in smashed_data
+# ---> encrypt 3584 random arrays
+# keep track of their location
