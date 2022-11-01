@@ -49,7 +49,7 @@ def get_random_array(the_data):
     updated_random_array = change_array_type_float64(random_array)
     return (updated_random_array, index_tuple)
 
-def fill_data_to_encrypt(the_data, amount_of_data):
+def fill_data_and_location_to_encrypt(the_data, amount_of_data):
     data_to_encrypt = []
 
     for i in range(amount_of_data):
@@ -57,6 +57,14 @@ def fill_data_to_encrypt(the_data, amount_of_data):
         data_to_encrypt.append(random_array_tuple)
 
     return data_to_encrypt
+
+def fill_data_only_to_encrypt(data_with_location_list):
+    '''takes data with location list and creates a new list with the data-to-encrypt only'''
+    data_to_encrypt_list = []
+    for info in data_with_location_list:
+        data_to_encrypt_list.append(info[0])
+
+    return data_to_encrypt_list
 
 #%%
 HE = set_HE()
@@ -67,8 +75,7 @@ print(HE)
 data = import_data()
 print("data shape: ", data.shape)
 
-data_to_encrypt = fill_data_to_encrypt(data, 30)
-#print("Data to encrypt: ", data_to_encrypt)
+random_data_with_location = fill_data_and_location_to_encrypt(data, 30)
 
 
 # %%
