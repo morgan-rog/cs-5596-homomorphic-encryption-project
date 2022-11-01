@@ -1,11 +1,13 @@
 # %%
-# Imports
+##### Imports
 from operator import index
 import time
 import random
 import numpy as np
 from Pyfhel import Pyfhel
 
+#%%
+##### Functions
 def set_HE():
     print("GENERATING PYFHEL CONTEXT AND KEY SETUP")
     HE = Pyfhel()           # Creating empty Pyfhel object
@@ -32,10 +34,16 @@ def import_data():
     return smashed_data
 
 def generate_random_index():
-    '''NEEDS TO BE EDITED - NO DUPLICATES'''
-    index1 = random.randrange(0, 8)
-    index2 = random.randrange(0, 64)
-    index3 = random.randrange(0, 28)
+    '''generates a random index for smashed_data and does not generate duplicates'''
+    while(True):
+        index1 = random.randrange(0, 8)
+        index2 = random.randrange(0, 64)
+        index3 = random.randrange(0, 28)
+        # print("index generated: ", (index1, index2, index3))
+        # print("index tracker: ", index_tracker)
+        if((index1, index2, index3) not in index_tracker):
+            index_tracker.append((index1, index2, index3))
+            break
 
     return (index1, index2, index3)
 
@@ -43,7 +51,7 @@ def change_array_type_float64(the_array):
     updated_array = np.array(the_array, dtype=np.float64)
     return updated_array
 
-def get_random_array(the_data):
+def get_random_array_and_location(the_data):
     '''returns tuple that contains the random data and its location'''
     index_tuple = generate_random_index()
     random_array = the_data[index_tuple[0]][index_tuple[1]][index_tuple[2]]
@@ -54,30 +62,86 @@ def fill_data_and_location_to_encrypt(the_data, amount_of_data):
     data_to_encrypt = []
 
     for i in range(amount_of_data):
-        random_array_tuple = get_random_array(the_data)
+        random_array_tuple = get_random_array_and_location(the_data)
         data_to_encrypt.append(random_array_tuple)
 
     return data_to_encrypt
 
-def fill_data_only_to_encrypt(data_with_location_list):
+def fill_data_only_to_encrypt(random_data_with_location):
     '''takes data with location list and creates a new list with the data-to-encrypt only'''
     data_to_encrypt_list = []
-    for info in data_with_location_list:
+    for info in random_data_with_location:
         data_to_encrypt_list.append(info[0])
 
     return data_to_encrypt_list
 
-#%%
+def encrypt_array(the_array):
+    ptxt_array = HE.encodeFrac(the_array)
+    ctxt_array = HE.encryptPtxt(ptxt_array)
+    return ctxt_array
+
+def decrypt_array(encrypted_array):
+    _r = lambda x: np.round(x, decimals=5)
+
+    decrypted_array = HE.decryptFrac(encrypted_array)
+    # slice the decrypted array
+    decrypted_array = decrypted_array[0:23]
+    # round the decrypted array
+    #decrypted_array = _r(sliced_decrypted_array)
+
+    return decrypted_array
+
+def encrypt_data_list(data_list):
+    encrypted_data_list = []
+    for array in data_list:
+        encrypted_data_list.append(encrypt_array(array))
+    
+    return encrypted_data_list
+
+def decrypt_data_list(data_list):
+    decrypted_data_list = []
+    for array in data_list:
+        decrypted_array = decrypt_array(array)
+        decrypted_data_list.append(decrypted_array)
+    
+    return decrypted_data_list
+
+
+
+# %%
+##### Global variables
+index_tracker = [] # to make sure there are no duplicate indexes
+
 HE = set_HE()
 print("1. printing the HE object: ")
 print(HE)
 
+# %%
+##### Main
+RANDOM_DATA_AMOUNT = 1500
 
+# import data
 data = import_data()
-print("data shape: ", data.shape)
+print("imported data shape: ", data.shape)
 
-random_data_with_location = fill_data_and_location_to_encrypt(data, 30)
+# Get random data and its location in smashed_data
+random_data_with_location = fill_data_and_location_to_encrypt(data, RANDOM_DATA_AMOUNT)
+# print("Random data and location list: ", random_data_with_location)
+# print("--- random data and location list length: ", len(random_data_with_location))
 
+# Create a list with only the data to be encrypted
+random_data_only = fill_data_only_to_encrypt(random_data_with_location)
+print(random_data_only[0:2])
+print("random data length: ", len(random_data_only[0]))
+
+# Encrypt the random data and create a list of it
+encrypted_data = encrypt_data_list(random_data_only)
+# print(encrypted_data[0:2])
+
+# Decrypt the random data and create a list of it 
+decrypted_data = decrypt_data_list(encrypted_data)
+print(decrypted_data[0:2])
+# print("decrypted data length: ", len(decrypted_data[0]))
 
 # %%
 # TO DO:
