@@ -32,6 +32,7 @@ def import_data():
     return smashed_data
 
 def generate_random_index():
+    '''NEEDS TO BE EDITED - NO DUPLICATES'''
     index1 = random.randrange(0, 8)
     index2 = random.randrange(0, 64)
     index3 = random.randrange(0, 28)
