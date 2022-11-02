@@ -106,8 +106,6 @@ def decrypt_data_list(data_list):
     
     return decrypted_data_list
 
-
-
 # %%
 ##### Global variables
 index_tracker = [] # to make sure there are no duplicate indexes
@@ -126,21 +124,36 @@ print("imported data shape: ", data.shape)
 
 # Get random data and its location in smashed_data
 random_data_with_location = fill_data_and_location_to_encrypt(data, RANDOM_DATA_AMOUNT)
-# print("Random data and location list: ", random_data_with_location)
-# print("--- random data and location list length: ", len(random_data_with_location))
 
 # Create a list with only the data to be encrypted
 random_data_only = fill_data_only_to_encrypt(random_data_with_location)
-print(random_data_only[0:2])
-print("random data length: ", len(random_data_only[0]))
 
 # Encrypt the random data and create a list of it
+encrypt_start_time = time.time()
 encrypted_data = encrypt_data_list(random_data_only)
+encrypt_end_time = time.time()
+encrypt_time = (encrypt_end_time-encrypt_start_time) * 10**3
+
+
+# Decrypt the random data and create a list of it
+decrypt_start_time = time.time()
+decrypted_data = decrypt_data_list(encrypted_data)
+decrypt_end_time = time.time()
+decrypt_time = (decrypt_end_time-decrypt_start_time) * 10**3
+
+#### PRINT STATEMENTS
+print("Time to encrypt: ", encrypt_time, " ms")
+print("Time to decrypt: ", decrypt_time, " ms")
+
+# print("Random data and location list: ", random_data_with_location)
+# print("--- random data and location list length: ", len(random_data_with_location))
+
+# print(random_data_only[0:2])
+# print("random data length: ", len(random_data_only[0]))
+
 # print(encrypted_data[0:2])
 
-# Decrypt the random data and create a list of it 
-decrypted_data = decrypt_data_list(encrypted_data)
-print(decrypted_data[0:2])
+# print(decrypted_data[0:2])
 # print("decrypted data length: ", len(decrypted_data[0]))
 
 # %%
@@ -148,3 +161,8 @@ print(decrypted_data[0:2])
 # access and encrypt 25% of the arrays in smashed_data
 # ---> encrypt 3584 random arrays
 # keep track of their location
+#
+#
+# track time to encrypt and decrypt --- save to a file
+# track time to perform operations on encrypted data --- save to file
+
