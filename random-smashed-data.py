@@ -106,6 +106,9 @@ def decrypt_data_list(data_list):
     
     return decrypted_data_list
 
+def perform_operations_on_encrypted_data(the_data):
+    print(the_data[0:2])
+
 # %%
 ##### Global variables
 index_tracker = [] # to make sure there are no duplicate indexes
