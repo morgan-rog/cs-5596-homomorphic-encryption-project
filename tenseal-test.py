@@ -116,6 +116,14 @@ def measure_average_deviation(non_encrypted_data, decrypted_data):
     average_deviation = (innaccuracy_sum / len(non_encrypted_data))
     return average_deviation
 
+def output_data(library, encrypt_time, decrypt_time, operation_time, average_deviation):
+    #header = ['python library', 'encrypt time', 'decrypt time', 'time to perform operations', 'average deviation']
+    data = [library, encrypt_time, decrypt_time, operation_time, average_deviation]
+    with open('measurements.csv', 'a') as file:
+        writer = csv.writer(file)
+        #writer.writerow(header)
+        writer.writerow(data)
+
 #%%
 #### GLOBAL
 index_tracker = [] # to make sure there are no duplicate indexes
@@ -168,5 +176,7 @@ print('operated decrypted data: ', operated_decrypted_data[0])
 # MEASURE AVERAGE DEVIATION
 average_deviation = measure_average_deviation(operated_nonencrypted_data, operated_decrypted_data)
 print('average deviation: ', average_deviation)
+
+output_data('TenSEAL', encrypt_time, decrypt_time, operations_time, average_deviation)
 
 # %%

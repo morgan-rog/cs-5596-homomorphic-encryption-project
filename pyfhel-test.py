@@ -130,14 +130,14 @@ def measure_average_deviation(non_encrypted_data, decrypted_data):
     average_deviation = (innaccuracy_sum / len(non_encrypted_data))
     return average_deviation
 
-def output_data(encrypt_time, decrypt_time, operation_time, average_deviation):
-    with open('measurements.csv', 'w') as file:
+def output_data(library, encrypt_time, decrypt_time, operation_time, average_deviation):
+    header = ['python library', 'encrypt time', 'decrypt time', 'time to perform operations', 'average deviation']
+    data = [library, encrypt_time, decrypt_time, operation_time, average_deviation]
+    with open('measurements.csv', 'a') as file:
         writer = csv.writer(file)
+        writer.writerow(header)
+        writer.writerow(data)
     
-
-
-
-
 
 # %%
 ##### Global variables
@@ -149,7 +149,7 @@ print(HE)
 
 # %%
 ##### Main
-RANDOM_DATA_AMOUNT = 10
+RANDOM_DATA_AMOUNT = 1500
 
 # import data
 data = import_data()
@@ -192,6 +192,8 @@ print('operated decrypted data: ', operated_decrypted_data[0])
 # MEASURE AVERAGE DEVIATION
 average_deviation = measure_average_deviation(operated_nonencrypted_data, operated_decrypted_data)
 print('average deviation: ', average_deviation)
+
+output_data('Pyfhel', encrypt_time, decrypt_time, operations_time, average_deviation)
 
 # print("Random data and location list: ", random_data_with_location)
 # print("--- random data and location list length: ", len(random_data_with_location))
