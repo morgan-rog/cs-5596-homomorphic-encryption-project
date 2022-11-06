@@ -1,38 +1,31 @@
 # %%
-##### Imports
+#### IMPORTS
+import tenseal as ts
 from operator import index
 import csv
 import time
 import random
 import numpy as np
-from Pyfhel import Pyfhel
 
 #%%
-##### Functions
-def set_HE():
-    print("GENERATING PYFHEL CONTEXT AND KEY SETUP")
-    HE = Pyfhel()           # Creating empty Pyfhel object
-    ckks_params = {
-        'scheme': 'CKKS',   # can also be 'ckks'
-        'n': 2**15,         # Polynomial modulus degree. For CKKS, n/2 values can be
-                            #  encoded in a single ciphertext.
-                            #  Typ. 2^D for D in [10, 16]
-        'scale': 2**30,     # All the encodings will use it for float->fixed point
-                            #  conversion: x_fix = round(x_float * scale)
-                            #  You can use this as default scale or use a different
-                            #  scale on each operation (set in HE.encryptFrac)
-        'qi_sizes': [60, 30, 30, 30, 60] # Number of bits of each prime in the chain.
-                            # Intermediate values should be  close to log2(scale)
-                            # for each operation, to have small rounding errors.
-    }
-    HE.contextGen(**ckks_params)  # Generate context for ckks scheme
-    HE.keyGen()             # Key Generation: generates a pair of public/secret keys
-    HE.rotateKeyGen()
-    return HE
-
+##### FUNCTIONS
 def import_data():
     smashed_data = np.load("smashed_data.npy")
     return smashed_data
+
+def change_array_type_float64(the_array):
+    updated_array = np.array(the_array, dtype=np.float64)
+    return updated_array
+
+def set_TS():
+    context = ts.context(
+        ts.SCHEME_TYPE.CKKS,
+        poly_modulus_degree=8192,
+        coeff_mod_bit_sizes=[60, 40, 40, 60]
+    )
+    context.generate_galois_keys()
+    context.global_scale = 2**40
+    return ts, context
 
 def generate_random_index():
     '''generates a random index for smashed_data and does not generate duplicates'''
@@ -47,10 +40,6 @@ def generate_random_index():
             break
 
     return (index1, index2, index3)
-
-def change_array_type_float64(the_array):
-    updated_array = np.array(the_array, dtype=np.float64)
-    return updated_array
 
 def get_random_array_and_location(the_data):
     '''returns tuple that contains the random data and its location'''
@@ -77,19 +66,16 @@ def fill_data_only_to_encrypt(random_data_with_location):
     return data_to_encrypt_list
 
 def encrypt_array(the_array):
-    ptxt_array = HE.encodeFrac(the_array)
-    ctxt_array = HE.encryptPtxt(ptxt_array)
-    return ctxt_array
+    enc_v1 = ts.ckks_vector(context, the_array)
+    return enc_v1
 
 def decrypt_array(encrypted_array):
-    _r = lambda x: np.round(x, decimals=5)
-
-    decrypted_array = HE.decryptFrac(encrypted_array)
+    #_r = lambda x: np.round(x, decimals=5)
+    decrypted_array = encrypted_array.decrypt()
     # slice the decrypted array
     decrypted_array = decrypted_array[0:23]
     # round the decrypted array
     #decrypted_array = _r(sliced_decrypted_array)
-
     return decrypted_array
 
 def encrypt_data_list(data_list):
@@ -130,26 +116,13 @@ def measure_average_deviation(non_encrypted_data, decrypted_data):
     average_deviation = (innaccuracy_sum / len(non_encrypted_data))
     return average_deviation
 
-def output_data(encrypt_time, decrypt_time, operation_time, average_deviation):
-    with open('measurements.csv', 'w') as file:
-        writer = csv.writer(file)
-    
-
-
-
-
-
-# %%
-##### Global variables
+#%%
+#### GLOBAL
 index_tracker = [] # to make sure there are no duplicate indexes
+ts, context = set_TS()
 
-HE = set_HE()
-print("1. printing the HE object: ")
-print(HE)
-
-# %%
-##### Main
-RANDOM_DATA_AMOUNT = 10
+##### MAIN
+RANDOM_DATA_AMOUNT = 1500
 
 # import data
 data = import_data()
@@ -159,12 +132,14 @@ print("imported data shape: ", data.shape)
 random_data_with_location = fill_data_and_location_to_encrypt(data, RANDOM_DATA_AMOUNT)
 # Create a list with only the data to be encrypted
 random_data_only = fill_data_only_to_encrypt(random_data_with_location)
-
+#print('random data: ', random_data_only[0])
+######################################################################################
 # ENCRYPTION
 encrypt_start_time = time.time()
 encrypted_data = encrypt_data_list(random_data_only)
 encrypt_end_time = time.time()
 encrypt_time = (encrypt_end_time-encrypt_start_time) * 10**3
+#print('encrypted data: ', encrypted_data[0])
 print("Time to encrypt: ", encrypt_time, " ms")
 
 # OPERATIONS ON NON-ENCRYPTED DATA
@@ -183,6 +158,7 @@ decrypt_start_time = time.time()
 decrypted_data = decrypt_data_list(encrypted_data)
 decrypt_end_time = time.time()
 decrypt_time = (decrypt_end_time-decrypt_start_time) * 10**3
+#print('decrypted data: ', decrypted_data[0])
 print("Time to decrypt: ", decrypt_time, " ms")
 
 # DECRYPTION ON OPERATED DATA
@@ -193,26 +169,4 @@ print('operated decrypted data: ', operated_decrypted_data[0])
 average_deviation = measure_average_deviation(operated_nonencrypted_data, operated_decrypted_data)
 print('average deviation: ', average_deviation)
 
-# print("Random data and location list: ", random_data_with_location)
-# print("--- random data and location list length: ", len(random_data_with_location))
-
-# print(random_data_only[0:2])
-# print("random data length: ", len(random_data_only[0]))
-
-# print(encrypted_data[0:2])
-
-# print(decrypted_data[0:2])
-# print("decrypted data length: ", len(decrypted_data[0]))
-
 # %%
-# TO DO:
-# access and encrypt 25% of the arrays in smashed_data
-# ---> encrypt 3584 random arrays
-# keep track of their location
-#
-#
-# track time to encrypt and decrypt --- save to a file
-# track time to perform operations on encrypted data --- save to file
-# try multithreading
-# measure data inaccuracy
-
